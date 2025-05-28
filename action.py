@@ -208,7 +208,11 @@ if __name__ == "__main__":
     r = requests.get(url, params={"url": full_url})
     print("🔗 Webhook статус:", r.text)
 
-    # Запуск Flask
+    # Запуск Telegram застосунку з webhook
     print("PORT:", os.getenv("PORT"))
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
-
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.getenv("PORT", 5000)),
+        webhook_url=full_url,
+        secret_token=WEBHOOK_SECRET
+    )
