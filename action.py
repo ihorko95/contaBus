@@ -189,10 +189,10 @@ def webhook():
         print("📩 Отримано запит від Telegram:")
         print(data)
         update = Update.de_json(data, application.bot)
-        # application.update_queue.put_nowait(update)
+        application.update_queue.put_nowait(update)
 
         # Запускаємо асинхронну обробку Update
-        asyncio.run(application.process_update(update))
+        # asyncio.run(application.process_update(update))
 
     except Exception as e:
         print("❌ Error in webhook:", e)
@@ -204,6 +204,13 @@ def webhook():
 def index():
     return "🤖 Бот живий!", 200
 
+async def process_updates():
+    while True:
+        update = await application.update_queue.get()
+        try:
+            await application.process_update(update)
+        except Exception as e:
+            print("❌ Error processing update:", e)
 
 if __name__ == "__main__":
     # Встановлення webhook
@@ -222,7 +229,7 @@ if __name__ == "__main__":
         print("✅ Telegram Application запущено")
 
         # Flask у окремому потоці
-
+        asyncio.create_task(process_updates())
         # Тепер запускаємо Flask (в окремому потоці)
         def run_flask():
             print("🚀 Flask запущено на порту", os.getenv("PORT"))
