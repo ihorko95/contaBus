@@ -201,11 +201,14 @@ def home():
     return "Бот працює."
 
 
-# (один раз встановлюємо webhook)
-url = f"https://api.telegram.org/bot{TOKEN}/setWebhook"
-full_url = f"{os.getenv('WEBHOOK_URL')}/{WEBHOOK_SECRET}"
-r = requests.get(url, params={"url": full_url})
-print("🔗 Webhook статус:", r.text)
+if __name__ == "__main__":
+    # Встановлення webhook
+    url = f"https://api.telegram.org/bot{TOKEN}/setWebhook"
+    full_url = f"{os.getenv('WEBHOOK_URL')}/{WEBHOOK_SECRET}"
+    r = requests.get(url, params={"url": full_url})
+    print("🔗 Webhook статус:", r.text)
 
-# Запускаємо Flask сервер, який обробляє POST від Telegram
-app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
+    # Запуск Flask
+    print("PORT:", os.getenv("PORT"))
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
+
