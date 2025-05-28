@@ -176,11 +176,17 @@ application.add_handler(CommandHandler("settime", settime))
 application.add_handler(CommandHandler("stop", stop))
 application.add_handler(CommandHandler("clear", clear_chat))
 
+async def process_updates():
+    while True:
+        await application.process_update(await application.update_queue.get())
+
 # === Flask маршрут для Telegram webhook ===
 @app.route(f"/{WEBHOOK_SECRET}", methods=["POST"])
 def webhook():
     try:
         data = request.get_json(force=True)
+        print("📩 Отримано запит від Telegram:")
+        print(data)  # або json.dumps(data, indent=2) для краси
         update = Update.de_json(data, bot)
         application.update_queue.put_nowait(update)
     except Exception as e:
@@ -207,6 +213,7 @@ if __name__ == "__main__":
         await application.initialize()
         await application.start()  # <- дуже важливо
         print("✅ Telegram Application запущено")
+        asyncio.create_task(process_updates())
 
     asyncio.run(start_bot())
 
