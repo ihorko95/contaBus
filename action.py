@@ -186,9 +186,10 @@ def webhook():
     try:
         data = request.get_json(force=True)
         print("📩 Отримано запит від Telegram:")
-        print(data)  # або json.dumps(data, indent=2) для краси
+        print(data)
         update = Update.de_json(data, bot)
-        application.update_queue.put_nowait(update)
+
+        # application.update_queue.put_nowait(update)
 
         # Запускаємо асинхронну обробку Update
         asyncio.run(application.process_update(update))
