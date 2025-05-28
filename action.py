@@ -190,8 +190,9 @@ def webhook():
         data = request.get_json(force=True)
         if data is None:
             return "NO JSON!", 400
-        print("📩 Отримано запит від Telegram:")
-        print(data)
+        logging.info("📩 Отримано запит від Telegram:")
+        logging.info(data)
+
 
         update = Update.de_json(data, application.bot)
         application.update_queue.put_nowait(update)
