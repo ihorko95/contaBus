@@ -167,20 +167,7 @@ async def handle_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
             print(f"Помилка при видаленні: {e}")
 
 
-# 🚀 Запуск
-# if __name__ == '__main__':
-#     bot = Application.builder().token(TOKEN).build()
-#
-#     bot.add_handler(CommandHandler("start", start))
-#     bot.add_handler(CommandHandler("send", send))
-#     bot.add_handler(CommandHandler("settime", settime))
-#     bot.add_handler(CommandHandler("stop", stop))
-#     bot.add_handler(CommandHandler("clear", clear_chat))
-#
-#     # Бот реагує на будь-яке повідомлення
-#     bot.add_handler(MessageHandler(filters.ALL, handle_chat_id))
-#     print("🤖 Бот працює.")
-#     bot.run_polling()
+
 
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("send", send))
@@ -188,17 +175,22 @@ application.add_handler(CommandHandler("settime", settime))
 application.add_handler(CommandHandler("stop", stop))
 application.add_handler(CommandHandler("clear", clear_chat))
 
+# === Flask маршрут для Telegram webhook ===
 @app.route(f"/{WEBHOOK_SECRET}", methods=["POST"])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    application.update_queue.put_nowait(update)
+    try:
+        data = request.get_json(force=True)
+        update = Update.de_json(data, bot)
+        application.update_queue.put_nowait(update)
+    except Exception as e:
+        print("❌ Error in webhook:", e)
+        return "Error", 400
+    return "OK", 200
 
-    return "ok"
-
-# Health check
+# === Health check ===
 @app.route("/", methods=["GET"])
-def home():
-    return "Бот працює."
+def index():
+    return "🤖 Бот живий!", 200
 
 
 if __name__ == "__main__":
