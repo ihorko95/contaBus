@@ -202,7 +202,7 @@ def home():
 
 if __name__ == "__main__":
     application.run_webhook(
-        listen="0.0.0.0",
+        listen=os.getenv('SERVER'),
         port=int(os.getenv("PORT", 5000)),
         webhook_url=f"{os.getenv('WEBHOOK_URL')}/{WEBHOOK_SECRET}"
     )
