@@ -186,13 +186,16 @@ async def process_updates():
 def webhook():
     try:
         data = request.get_json(force=True)
+        if data is None:
+            return "NO JSON!", 400
         print("📩 Отримано запит від Telegram:")
         print(data)
+
         update = Update.de_json(data, application.bot)
-        # application.update_queue.put_nowait(update)
+        application.update_queue.put_nowait(update)
 
         # Запускаємо асинхронну обробку Update
-        asyncio.run(application.process_update(update))
+
 
     except Exception as e:
         print("❌ Error in webhook:", e)
