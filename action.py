@@ -188,12 +188,12 @@ application.add_handler(CommandHandler("settime", settime))
 application.add_handler(CommandHandler("stop", stop))
 application.add_handler(CommandHandler("clear", clear_chat))
 
-@app.route(f"/{WEBHOOK_SECRET}", methods=["POST"])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    application.update_queue.put_nowait(update)
-
-    return "ok"
+# @app.route(f"/{WEBHOOK_SECRET}", methods=["POST"])
+# def webhook():
+#     update = Update.de_json(request.get_json(force=True), bot)
+#     application.update_queue.put_nowait(update)
+#
+#     return "ok"
 
 # Health check
 @app.route("/", methods=["GET"])
@@ -202,17 +202,20 @@ def home():
 
 
 if __name__ == "__main__":
-    # Встановлення webhook
-    url = f"https://api.telegram.org/bot{TOKEN}/setWebhook"
-    full_url = f"{os.getenv('WEBHOOK_URL')}/{WEBHOOK_SECRET}"
-    r = requests.get(url, params={"url": full_url})
-    print("🔗 Webhook статус:", r.text)
+    from telegram.ext import Defaults
+    from telegram.ext import ApplicationBuilder
 
-    # Запуск Telegram застосунку з webhook
-    print("PORT:", os.getenv("PORT"))
+    # Збір змінних середовища
+    WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+    WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
+    PORT = int(os.getenv("PORT", 5000))
+    FULL_WEBHOOK_URL = f"{WEBHOOK_URL}/{WEBHOOK_SECRET}"
+
+    print(f"🔗 Встановлення webhook на: {FULL_WEBHOOK_URL}")
+
     application.run_webhook(
         listen="0.0.0.0",
-        port=int(os.getenv("PORT", 5000)),
-        webhook_url=full_url,
-        secret_token=WEBHOOK_SECRET
+        port=PORT,
+        webhook_url=FULL_WEBHOOK_URL,
+        secret_token=WEBHOOK_SECRET,
     )
