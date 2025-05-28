@@ -191,7 +191,7 @@ def webhook():
         application.update_queue.put_nowait(update)
 
         # Запускаємо асинхронну обробку Update
-        asyncio.create_task(application.process_update(update))
+        asyncio.run(application.process_update(update))
 
     except Exception as e:
         print("❌ Error in webhook:", e)
