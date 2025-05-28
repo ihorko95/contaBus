@@ -1,3 +1,4 @@
+import asyncio
 import os, requests
 from datetime import time, datetime, timedelta
 from babel.dates import format_date
@@ -202,5 +203,12 @@ if __name__ == "__main__":
 
     # Запуск Flask
     print("PORT:", os.getenv("PORT"))
+    async def start_bot():
+        await application.initialize()
+        await application.start()  # <- дуже важливо
+        print("✅ Telegram Application запущено")
+
+    asyncio.run(start_bot())
+
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
 
