@@ -189,8 +189,9 @@ def webhook():
         print("📩 Отримано запит від Telegram:")
         print(data)
         update = Update.de_json(data, application.bot)
-        application.update_queue.put_nowait(update)
-
+        # application.update_queue.put_nowait(update)
+        loop = asyncio.get_event_loop()
+        loop.create_task(application.process_update(update))
         # Запускаємо асинхронну обробку Update
         # asyncio.run(application.process_update(update))
 
