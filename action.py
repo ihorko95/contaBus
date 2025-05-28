@@ -1,9 +1,11 @@
-import os,locale
+import os
 from datetime import time, datetime, timedelta
+from babel.dates import format_date
 from pytz import timezone
-from telegram import Update
+from flask import Flask, request
+from telegram import Update,Bot
 from telegram.ext import (
-    Application, CommandHandler, ContextTypes, MessageHandler, filters,
+    ApplicationBuilder, CommandHandler, ContextTypes,
 )
 
 from dotenv import load_dotenv, find_dotenv
@@ -12,22 +14,34 @@ load_dotenv(find_dotenv())
 TOKEN=os.getenv('TOKEN')
 CHAT_ID=os.getenv('CHATID')
 OWNER_ID=int(os.getenv('OWNER'))
+WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 # 🌍 Часовий пояс
 KYIV_TZ = timezone('Europe/Kyiv')
-locale.setlocale(locale.LC_TIME, 'uk_UA.UTF-8')
+
 
 alertText='Ця команда доступна лише власнику бота. @yourbus_travel'
 # Глобальна змінна для зберігання ID групи
 chat_ids = set()
+
+
+app = Flask(__name__)
+bot = Bot(token=TOKEN)
+
+application = ApplicationBuilder().token(TOKEN).build()
+
+
 
 def get_date_range_text():
     tomorrow = datetime.now() + timedelta(days=1)
     day_after_tomorrow = datetime.now() + timedelta(days=2)
 
     if tomorrow.month == day_after_tomorrow.month:
-        date_range = f"{tomorrow.day}-{day_after_tomorrow.day} {tomorrow.strftime('%B')}"
+        month_name_uk=format_date(tomorrow, format='d MMMM yyyy',locale='uk').split()[1]
+        date_range = f"{tomorrow.day}-{day_after_tomorrow.day} {month_name_uk}"
     else:
-        date_range = f"{tomorrow.day} {tomorrow.strftime('%B')} – {day_after_tomorrow.day} {day_after_tomorrow.strftime('%B')}"
+        month1_name_uk = format_date(tomorrow, format='d MMMM yyyy',locale='uk').split()[1]
+        month2_name_uk = format_date(day_after_tomorrow, format='d MMMM yyyy',locale='uk').split()[1]
+        date_range = f"{tomorrow.day} {month1_name_uk} – {day_after_tomorrow.day} {month2_name_uk}"
 
     return date_range
 
@@ -154,16 +168,41 @@ async def handle_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # 🚀 Запуск
-if __name__ == '__main__':
-    bot = Application.builder().token(TOKEN).build()
+# if __name__ == '__main__':
+#     bot = Application.builder().token(TOKEN).build()
+#
+#     bot.add_handler(CommandHandler("start", start))
+#     bot.add_handler(CommandHandler("send", send))
+#     bot.add_handler(CommandHandler("settime", settime))
+#     bot.add_handler(CommandHandler("stop", stop))
+#     bot.add_handler(CommandHandler("clear", clear_chat))
+#
+#     # Бот реагує на будь-яке повідомлення
+#     bot.add_handler(MessageHandler(filters.ALL, handle_chat_id))
+#     print("🤖 Бот працює.")
+#     bot.run_polling()
 
-    bot.add_handler(CommandHandler("start", start))
-    bot.add_handler(CommandHandler("send", send))
-    bot.add_handler(CommandHandler("settime", settime))
-    bot.add_handler(CommandHandler("stop", stop))
-    bot.add_handler(CommandHandler("clear", clear_chat))
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("send", send))
+application.add_handler(CommandHandler("settime", settime))
+application.add_handler(CommandHandler("stop", stop))
+application.add_handler(CommandHandler("clear", clear_chat))
 
-    # Бот реагує на будь-яке повідомлення
-    bot.add_handler(MessageHandler(filters.ALL, handle_chat_id))
-    print("🤖 Бот працює.")
-    bot.run_polling()
+@app.route(f"/{WEBHOOK_SECRET}", methods=["POST"])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), bot)
+    application.update_queue.put_nowait(update)
+
+    return "ok"
+
+# Health check
+@app.route("/", methods=["GET"])
+def home():
+    return "Бот працює."
+
+if __name__ == "__main__":
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.getenv("PORT", 5000)),
+        webhook_url=f"{os.getenv('WEBHOOK_URL')}/{WEBHOOK_SECRET}"
+    )
