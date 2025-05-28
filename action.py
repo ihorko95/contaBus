@@ -4,6 +4,7 @@ from datetime import time, datetime, timedelta
 from babel.dates import format_date
 from pytz import timezone
 from flask import Flask, request
+from threading import Thread
 from telegram import Update,Bot
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, ContextTypes,
@@ -187,8 +188,7 @@ def webhook():
         data = request.get_json(force=True)
         print("📩 Отримано запит від Telegram:")
         print(data)
-        update = Update.de_json(data, bot)
-
+        update = Update.de_json(data, application.bot)
         # application.update_queue.put_nowait(update)
 
         # Запускаємо асинхронну обробку Update
@@ -222,8 +222,10 @@ if __name__ == "__main__":
         print("✅ Telegram Application запущено")
 
         # Flask у окремому потоці
-        from threading import Thread
+
+        # Тепер запускаємо Flask (в окремому потоці)
         def run_flask():
+            print("🚀 Flask запущено на порту", os.getenv("PORT"))
             app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
 
         Thread(target=run_flask).start()
