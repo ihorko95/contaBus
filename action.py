@@ -1,4 +1,4 @@
-import os
+import os, requests
 from datetime import time, datetime, timedelta
 from babel.dates import format_date
 from pytz import timezone
@@ -200,10 +200,12 @@ def webhook():
 def home():
     return "Бот працює."
 
-if __name__ == "__main__":
-    print(os.getenv('SERVER'),int(os.getenv("PORT", 5000)))
-    application.run_webhook(
-        listen='0.0.0.0',
-        port=int(os.getenv("PORT", 5000)),
-        webhook_url=f"{os.getenv('WEBHOOK_URL')}/{WEBHOOK_SECRET}"
-    )
+
+# (один раз встановлюємо webhook)
+url = f"https://api.telegram.org/bot{TOKEN}/setWebhook"
+full_url = f"{os.getenv('WEBHOOK_URL')}/{WEBHOOK_SECRET}"
+r = requests.get(url, params={"url": full_url})
+print("🔗 Webhook статус:", r.text)
+
+# Запускаємо Flask сервер, який обробляє POST від Telegram
+app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
