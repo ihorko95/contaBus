@@ -201,8 +201,9 @@ def home():
     return "Бот працює."
 
 if __name__ == "__main__":
+    print(os.getenv('SERVER'),int(os.getenv("PORT", 5000)))
     application.run_webhook(
-        listen=os.getenv('SERVER'),
+        listen='0.0.0.0',
         port=int(os.getenv("PORT", 5000)),
         webhook_url=f"{os.getenv('WEBHOOK_URL')}/{WEBHOOK_SECRET}"
     )
