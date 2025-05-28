@@ -8,7 +8,7 @@ from flask import Flask, request
 from threading import Thread
 from telegram import Update,Bot
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler, ContextTypes,
+    ApplicationBuilder, CommandHandler, ContextTypes, CallbackContext,
 )
 
 from dotenv import load_dotenv, find_dotenv
@@ -195,18 +195,34 @@ def webhook():
         data = request.get_json(force=True)
         if data is None:
             return "NO JSON!", 400
-        logging.info("📩 Отримано запит від Telegram:")
-
 
         update = Update.de_json(data, application.bot)
-        application.update_queue.put_nowait(update)
 
-        # Запускаємо асинхронну обробку Update
+        # Визначаємо команду
+        text = update.message.text if update.message else ""
 
+        async def manual_dispatch():
+            context = CallbackContext(application)
+            if text.startswith("/start"):
+                logging.info("/start")
+                await start(update, context)
+            elif text.startswith("/stop"):
+                await stop(update, context)
+            elif text.startswith("/send"):
+                await send(update, context)
+            elif text.startswith("/settime"):
+                await settime(update, context)
+            elif text.startswith("/clear"):
+                await clear_chat(update, context)
+            else:
+                await handle_chat_id(update, context)
+
+        asyncio.create_task(manual_dispatch())
 
     except Exception as e:
         print("❌ Error in webhook:", e)
         return "Error", 400
+
     return "OK", 200
 
 # === Health check ===
