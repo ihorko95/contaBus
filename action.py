@@ -61,6 +61,7 @@ async def daily_message(context: ContextTypes.DEFAULT_TYPE):
 
 # 📅 Старт: автоматичне планування
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logging.info("📩 Telegram: start")
     chat_id = update.effective_chat.id
     job_name = f"daily_{chat_id}"
 
@@ -84,6 +85,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ⏱ Користувач задає час у форматі hh:mm
 async def settime(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logging.info("📩 Telegram: settime")
     chat_id = update.effective_chat.id
     job_name = f"daily_{chat_id}"
 
@@ -116,6 +118,7 @@ async def settime(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ⛔ Зупинка щоденних повідомлень
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logging.info("📩 Telegram: stop")
     chat_id = update.effective_chat.id
     job_name = f"daily_{chat_id}"
     if update.effective_user.id != OWNER_ID:
@@ -131,7 +134,7 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("ℹ️ Немає активного щоденного розкладу.")
 
 async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
+    logging.info("📩 Telegram: send")
     if update.effective_user.id != OWNER_ID:
         await update.message.reply_text(alertText)
         print(update.effective_user.id)
@@ -143,6 +146,7 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def clear_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logging.info("📩 Telegram: clear")
     chat_id = update.effective_chat.id
     for msg_id in range(update.message.message_id, update.message.message_id - 50, -1):
         try:
@@ -151,6 +155,7 @@ async def clear_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass  # Можливо, повідомлення не існує або бот не має доступу
 
 async def handle_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logging.info("📩 Telegram: other")
     chat_id = update.effective_chat.id
     chat_title = update.effective_chat.title or update.effective_chat.username
 
@@ -191,7 +196,6 @@ def webhook():
         if data is None:
             return "NO JSON!", 400
         logging.info("📩 Отримано запит від Telegram:")
-        logging.info(data)
 
 
         update = Update.de_json(data, application.bot)
@@ -229,7 +233,7 @@ if __name__ == "__main__":
         print("✅ Telegram Application запущено")
 
         # Flask у окремому потоці
-
+        asyncio.create_task(process_updates())
         # Тепер запускаємо Flask (в окремому потоці)
         def run_flask():
             print("🚀 Flask запущено на порту", os.getenv("PORT"))
