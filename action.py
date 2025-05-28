@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os, requests
 from datetime import time, datetime, timedelta
 from babel.dates import format_date
@@ -21,6 +22,7 @@ WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 KYIV_TZ = timezone('Europe/Kyiv')
 
 
+logging.basicConfig(level=logging.INFO)
 alertText='Ця команда доступна лише власнику бота. @yourbus_travel'
 # Глобальна змінна для зберігання ID групи
 chat_ids = set()
@@ -205,6 +207,7 @@ def webhook():
 # === Health check ===
 @app.route("/", methods=["GET"])
 def index():
+    logging.info("🔵 Запит на / — Бот живий!")
     return "🤖 Бот живий!", 200
 
 
